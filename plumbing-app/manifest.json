@@ -1,0 +1,9 @@
+{
+  "name": "Plumber's Job Kit",
+  "short_name": "Job Kit",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef2f5",
+  "theme_color": "#b0522a",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

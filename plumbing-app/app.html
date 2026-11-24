@@ -1,0 +1,455 @@
+<title>Plumber's Job Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-column phone app — sticky header, scrolling panel, fixed bottom tab bar (Jobs / Quote / Calcs). Copper accent, PEX-blue secondary. */
+:root {
+  --bg: #eef2f5; --surface: #ffffff; --sunk: #e3e9ee; --ink: #14212e; --muted: #5a6a79; --line: #d3dbe2;
+  --copper: #b0522a; --copper-ink: #ffffff; --pex: #1d6bb0; --ok: #2c7a4c; --warn: #9a6200; --bad: #b3261e;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d141b; --surface: #15202a; --sunk: #1b2834; --ink: #e5ecf2; --muted: #92a2b1; --line: #263543;
+  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --ok: #5fbf86; --warn: #e3a845; --bad: #f2867d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d141b; --surface: #15202a; --sunk: #1b2834; --ink: #e5ecf2; --muted: #92a2b1; --line: #263543;
+  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --ok: #5fbf86; --warn: #e3a845; --bad: #f2867d; color-scheme: dark }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; gap: 12px; padding-block: 12px; }
+.mark { width: 34px; height: 34px; flex: none; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.55rem; letter-spacing: .01em; margin: 0; line-height: 1; }
+.sub { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+
+main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
+h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--display); font-weight: 600; font-size: 1.15rem; margin: 0; }
+.panel { display: grid; gap: 14px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+button, .btn { font: 600 .95rem var(--body); border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 14px; cursor: pointer; min-height: 42px; }
+button.primary { background: var(--copper); border-color: var(--copper); color: var(--copper-ink); }
+button.danger { color: var(--bad); border-color: var(--bad); }
+button.ghost { background: transparent; border-color: transparent; color: var(--pex); padding-inline: 6px; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--pex); outline-offset: 2px; }
+
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.chip { border-radius: 999px; min-height: 36px; padding: 6px 14px; font-size: .9rem; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; min-width: 0; }
+.job { cursor: pointer; }
+.job .addr { overflow-wrap: anywhere; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.s-scheduled { color: var(--pex); } .s-progress { color: var(--warn); } .s-done { color: var(--ok); }
+.tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); border: 1px dashed var(--line); padding: 1px 6px; border-radius: 4px; }
+.details { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+.details dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.details dt { color: var(--muted); font-size: .85rem; } .details dd { margin: 0; overflow-wrap: anywhere; }
+.empty { text-align: center; padding: 28px 12px; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
+
+label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); font-weight: 500; min-width: 0; }
+input, select, textarea { font: 400 1rem var(--body); color: var(--ink); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px; width: 100%; min-height: 44px; }
+textarea { min-height: 72px; resize: vertical; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 380px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* Quote */
+.lines { display: grid; gap: 8px; }
+.line { display: grid; grid-template-columns: 1fr 64px 84px 36px; gap: 6px; align-items: center; }
+.line input { padding: 8px; min-height: 40px; }
+.line .x { min-height: 40px; padding: 0; color: var(--muted); }
+.line-head { display: grid; grid-template-columns: 1fr 64px 84px 36px; gap: 6px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.catalog { display: flex; flex-wrap: wrap; gap: 6px; }
+.catalog button { font-size: .85rem; min-height: 36px; padding: 6px 10px; font-weight: 500; }
+.totals { display: grid; gap: 4px; }
+.totals div { display: flex; justify-content: space-between; gap: 12px; }
+.totals .grand { font-family: var(--display); font-size: 1.6rem; font-weight: 700; border-top: 2px solid var(--ink); padding-top: 6px; margin-top: 4px; }
+.totals .grand span:last-child { font-family: var(--mono); font-size: 1.35rem; color: var(--copper); }
+
+/* Calcs */
+.result { background: var(--sunk); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.result .big { font-family: var(--mono); font-size: 1.4rem; color: var(--copper); }
+.ref { font-size: .8rem; color: var(--muted); }
+
+/* Bottom tabs */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+nav.tabs .wrap { display: grid; grid-template-columns: repeat(3, 1fr); }
+nav.tabs button { border: 0; border-radius: 0; background: transparent; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 10px; min-height: 60px; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+nav.tabs button svg { width: 24px; height: 24px; }
+nav.tabs button[aria-selected="true"] { color: var(--copper); box-shadow: inset 0 3px 0 var(--copper); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; z-index: 20; max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: rise .2s ease-out; } @keyframes rise { from { transform: translate(-50%, 8px); opacity: 0; } } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <svg class="mark" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="1" width="32" height="32" rx="8" fill="var(--copper)"/>
+      <path d="M8 11h11a5 5 0 0 1 5 5v9" fill="none" stroke="var(--copper-ink)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M24 27c-2-2.5-3-4-3-5.2a3 3 0 0 1 6 0c0 1.2-1 2.7-3 5.2z" fill="var(--copper-ink)" transform="translate(0 2)"/>
+    </svg>
+    <div>
+      <h1>Plumber's Job Kit</h1>
+      <div class="sub" id="subline">Jobs · Quotes · Calculators</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- JOBS -->
+  <section class="panel" id="tab-jobs">
+    <div class="row spread">
+      <h2>Jobs</h2>
+      <button class="primary" id="newJob">+ New job</button>
+    </div>
+    <div class="chips" id="filters" role="group" aria-label="Filter jobs by status"></div>
+
+    <form class="card" id="jobForm" hidden>
+      <h3 id="formTitle">New job</h3>
+      <label>Customer<input id="f-customer" required autocomplete="off" placeholder="Name"></label>
+      <div class="grid2">
+        <label>Phone<input id="f-phone" type="tel" placeholder="(555) 555-0100"></label>
+        <label>Date<input id="f-date" type="date"></label>
+      </div>
+      <label>Address<input id="f-address" placeholder="Street, city"></label>
+      <label>Problem / work<textarea id="f-issue" placeholder="e.g. Kitchen sink drain slow, P-trap leaking"></textarea></label>
+      <label>Status
+        <select id="f-status"><option value="scheduled">Scheduled</option><option value="progress">In progress</option><option value="done">Done</option></select>
+      </label>
+      <div class="row"><button class="primary" type="submit">Save job</button><button type="button" id="cancelJob">Cancel</button></div>
+    </form>
+
+    <div class="panel" id="jobList"></div>
+  </section>
+
+  <!-- QUOTE -->
+  <section class="panel" id="tab-quote" hidden>
+    <div class="row spread"><h2>Quote</h2><button class="ghost" id="clearQuote">Clear</button></div>
+    <div class="card">
+      <div class="grid2">
+        <label>Customer<input id="q-customer" placeholder="Name"></label>
+        <label>Job<input id="q-job" placeholder="e.g. Replace water heater"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row spread"><h3>Parts</h3><span class="tag">Example prices — edit to yours</span></div>
+      <div class="catalog" id="catalog"></div>
+      <div class="line-head"><span>Item</span><span>Qty</span><span>Each $</span><span></span></div>
+      <div class="lines" id="lines"></div>
+      <button type="button" id="addLine">+ Custom item</button>
+    </div>
+
+    <div class="card">
+      <h3>Labor &amp; extras</h3>
+      <div class="grid2">
+        <label>Labor hours<input id="q-hours" type="number" inputmode="decimal" min="0" step="0.25" value="2"></label>
+        <label>Rate $/hr<input id="q-rate" type="number" inputmode="decimal" min="0" step="1" value="95"></label>
+        <label>Parts markup %<input id="q-markup" type="number" inputmode="decimal" min="0" step="1" value="20"></label>
+        <label>Tax on parts %<input id="q-tax" type="number" inputmode="decimal" min="0" step="0.1" value="7"></label>
+        <label>Trip / call-out $<input id="q-trip" type="number" inputmode="decimal" min="0" step="1" value="75"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="totals" id="totals"></div>
+      <button class="primary" id="copyQuote">Copy quote as text</button>
+      <textarea id="quoteText" readonly hidden aria-label="Quote text"></textarea>
+    </div>
+  </section>
+
+  <!-- CALCS -->
+  <section class="panel" id="tab-calcs" hidden>
+    <h2>Calculators</h2>
+
+    <div class="card">
+      <h3>Water in a pipe run</h3>
+      <p class="ref" style="margin:0">How much water to drain or fill. Uses actual inside diameters.</p>
+      <div class="grid2">
+        <label>Pipe
+          <select id="c-pipe"></select>
+        </label>
+        <label>Length (ft)<input id="c-len" type="number" inputmode="decimal" min="0" value="50"></label>
+      </div>
+      <div class="result"><span class="big num" id="r-vol"></span><span class="ref" id="r-vol2"></span></div>
+    </div>
+
+    <div class="card">
+      <h3>Drain slope</h3>
+      <div class="grid2">
+        <label>Run length (ft)<input id="c-run" type="number" inputmode="decimal" min="0" value="20"></label>
+        <label>Slope
+          <select id="c-slope"><option value="0.25">¼″ per ft (pipe ≤ 3″)</option><option value="0.125">⅛″ per ft (4″ and up)</option><option value="0.5">½″ per ft</option></select>
+        </label>
+      </div>
+      <div class="result"><span class="big num" id="r-drop"></span><span class="ref">Total fall from start to end of the run.</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Pressure &amp; elevation</h3>
+      <p class="ref" style="margin:0">Each foot of height costs 0.433 psi.</p>
+      <div class="grid2">
+        <label>Pressure at meter (psi)<input id="c-psi" type="number" inputmode="decimal" min="0" value="60"></label>
+        <label>Fixture height above (ft)<input id="c-height" type="number" inputmode="decimal" value="20"></label>
+      </div>
+      <div class="result"><span class="big num" id="r-psi"></span><span class="ref" id="r-psi2"></span></div>
+    </div>
+
+    <div class="card">
+      <h3>Water heater sizing</h3>
+      <p class="ref" style="margin:0">Hot water used in the busiest hour. Pick a tank whose first-hour rating (FHR) meets it.</p>
+      <div class="grid2">
+        <label>Showers<input id="h-shower" type="number" inputmode="numeric" min="0" value="3"></label>
+        <label>Baths<input id="h-bath" type="number" inputmode="numeric" min="0" value="0"></label>
+        <label>Dishwasher loads<input id="h-dish" type="number" inputmode="numeric" min="0" value="1"></label>
+        <label>Clothes washer loads<input id="h-wash" type="number" inputmode="numeric" min="0" value="1"></label>
+        <label>Kitchen sink uses<input id="h-sink" type="number" inputmode="numeric" min="0" value="1"></label>
+      </div>
+      <div class="result"><span class="big num" id="r-fhr"></span><span class="ref" id="r-fhr2"></span></div>
+      <p class="ref" style="margin:0">Hot gallons per use: shower 10, bath 20, dishwasher 6, washer 7, sink 4.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <div class="wrap">
+    <button role="tab" data-tab="jobs" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h5"/></svg>Jobs</button>
+    <button role="tab" data-tab="quote" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M16 7.5c-.6-1.5-2.2-2.5-4-2.5-2.2 0-4 1.3-4 3s1.8 2.6 4 3 4 1.3 4 3-1.8 3-4 3c-1.8 0-3.4-1-4-2.5"/></svg>Quote</button>
+    <button role="tab" data-tab="calcs" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10a4 4 0 0 1 4 4v9M3 12h8a2 2 0 0 1 2 2v7"/><path d="M19 3.5c1.3 1.7 2 2.8 2 3.6a2 2 0 0 1-4 0c0-.8.7-1.9 2-3.6z"/></svg>Calcs</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = (n) => "$" + (Number.isFinite(n) ? n : 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num = (el) => { const v = parseFloat(el.value); return Number.isFinite(v) ? v : 0; };
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  let toastT;
+  const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2200); };
+
+  /* ---------- Tabs ---------- */
+  const tabs = ["jobs", "quote", "calcs"];
+  function showTab(name) {
+    if (!tabs.includes(name)) name = "jobs";
+    tabs.forEach((t) => { $("#tab-" + t).hidden = t !== name; });
+    document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+    save("pjk.tab", name);
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+  /* ---------- Jobs ---------- */
+  const STATUS = { scheduled: "Scheduled", progress: "In progress", done: "Done" };
+  const today = new Date(); const iso = (d) => d.toISOString().slice(0, 10);
+  const plus = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return iso(d); };
+  const EXAMPLES = [
+    { id: uid(), example: true, customer: "Example: Dana Ruiz", phone: "(555) 555-0142", address: "418 Alder St", issue: "Water heater (40 gal gas) leaking at the base. Quote replacement.", date: plus(0), status: "progress" },
+    { id: uid(), example: true, customer: "Example: Corner Café", phone: "(555) 555-0187", address: "22 Main St", issue: "Grease buildup in 2″ kitchen line. Snake and jet.", date: plus(1), status: "scheduled" },
+    { id: uid(), example: true, customer: "Example: M. Okafor", phone: "(555) 555-0119", address: "9 Birch Ct, Apt 3", issue: "Replaced wax ring and closet bolts on upstairs toilet.", date: plus(-2), status: "done" },
+  ];
+  let jobs = load("pjk.jobs", null) || EXAMPLES;
+  let filter = "all", openId = null, editId = null, confirmDel = null;
+
+  function renderFilters() {
+    const counts = { all: jobs.length }; Object.keys(STATUS).forEach((k) => (counts[k] = jobs.filter((j) => j.status === k).length));
+    $("#filters").innerHTML = [["all", "All"], ...Object.entries(STATUS)].map(([k, l]) =>
+      `<button class="chip" data-f="${k}" aria-pressed="${filter === k}">${l} <span class="num">${counts[k]}</span></button>`).join("");
+  }
+  const fmtDate = (s) => { if (!s) return "No date"; const d = new Date(s + "T12:00"); return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }); };
+
+  function renderJobs() {
+    renderFilters();
+    const order = { progress: 0, scheduled: 1, done: 2 };
+    const list = jobs.filter((j) => filter === "all" || j.status === filter)
+      .sort((a, b) => order[a.status] - order[b.status] || (a.date || "").localeCompare(b.date || ""));
+    if (!list.length) {
+      $("#jobList").innerHTML = `<div class="empty">No ${filter === "all" ? "" : STATUS[filter].toLowerCase() + " "}jobs yet.<br>Tap <strong>+ New job</strong> to add one.</div>`;
+      return;
+    }
+    $("#jobList").innerHTML = list.map((j) => {
+      const open = openId === j.id;
+      return `<article class="card job" data-id="${j.id}" tabindex="0" aria-expanded="${open}">
+        <div class="row spread"><h3>${esc(j.customer)}</h3><span class="pill s-${j.status}">${STATUS[j.status]}</span></div>
+        <div class="row small muted"><span>${fmtDate(j.date)}</span>${j.address ? `<span>·</span><span class="addr">${esc(j.address)}</span>` : ""}${j.example ? ` <span class="tag">Example</span>` : ""}</div>
+        ${open ? `<div class="details">
+          <dl>
+            ${j.phone ? `<dt>Phone</dt><dd class="num">${esc(j.phone)}</dd>` : ""}
+            ${j.issue ? `<dt>Work</dt><dd>${esc(j.issue)}</dd>` : ""}
+          </dl>
+          <div class="row">
+            ${j.status !== "done" ? `<button class="primary" data-act="advance">${j.status === "scheduled" ? "Start job" : "Mark done"}</button>` : `<button data-act="reopen">Reopen</button>`}
+            <button data-act="quote">Quote</button>
+            <button data-act="edit">Edit</button>
+            <button class="danger" data-act="delete">${confirmDel === j.id ? "Tap again to delete" : "Delete"}</button>
+          </div>
+        </div>` : ""}
+      </article>`;
+    }).join("");
+  }
+
+  $("#filters").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { filter = b.dataset.f; renderJobs(); } });
+  $("#jobList").addEventListener("click", (e) => {
+    const card = e.target.closest(".job"); if (!card) return;
+    const j = jobs.find((x) => x.id === card.dataset.id); const act = e.target.closest("[data-act]")?.dataset.act;
+    if (!act) { openId = openId === j.id ? null : j.id; confirmDel = null; return renderJobs(); }
+    if (act === "advance") { j.status = j.status === "scheduled" ? "progress" : "done"; toast(j.status === "done" ? "Job marked done" : "Job started"); }
+    if (act === "reopen") { j.status = "progress"; toast("Job reopened"); }
+    if (act === "edit") return openForm(j);
+    if (act === "quote") { $("#q-customer").value = j.customer.replace(/^Example: /, ""); $("#q-job").value = j.issue.split(/[.\n]/)[0]; saveQuote(); renderQuote(); return showTab("quote"); }
+    if (act === "delete") {
+      if (confirmDel !== j.id) { confirmDel = j.id; return renderJobs(); }
+      jobs = jobs.filter((x) => x.id !== j.id); confirmDel = null; openId = null; toast("Job deleted");
+    }
+    save("pjk.jobs", jobs); renderJobs();
+  });
+  $("#jobList").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("job")) { e.preventDefault(); e.target.click(); } });
+
+  function openForm(j) {
+    editId = j ? j.id : null;
+    $("#formTitle").textContent = j ? "Edit job" : "New job";
+    $("#f-customer").value = j?.customer || ""; $("#f-phone").value = j?.phone || ""; $("#f-address").value = j?.address || "";
+    $("#f-issue").value = j?.issue || ""; $("#f-date").value = j?.date || iso(today); $("#f-status").value = j?.status || "scheduled";
+    $("#jobForm").hidden = false; $("#f-customer").focus();
+  }
+  $("#newJob").addEventListener("click", () => openForm(null));
+  $("#cancelJob").addEventListener("click", () => { $("#jobForm").hidden = true; });
+  $("#jobForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = { customer: $("#f-customer").value.trim(), phone: $("#f-phone").value.trim(), address: $("#f-address").value.trim(),
+      issue: $("#f-issue").value.trim(), date: $("#f-date").value, status: $("#f-status").value };
+    if (!data.customer) return;
+    if (editId) { Object.assign(jobs.find((x) => x.id === editId), data, { example: false }); toast("Job saved"); }
+    else { const j = { id: uid(), ...data }; jobs.push(j); openId = j.id; toast("Job added"); }
+    $("#jobForm").hidden = true; save("pjk.jobs", jobs); filter = "all"; renderJobs();
+  });
+
+  /* ---------- Quote ---------- */
+  const CATALOG = [
+    ["½″ copper pipe Type L (ft)", 4.5], ["¾″ copper pipe Type L (ft)", 7.25], ["½″ PEX-A (ft)", 0.85], ["¾″ PEX-A (ft)", 1.4],
+    ["1½″ PVC P-trap", 9], ["Wax ring + closet bolts", 8.5], ["¼-turn shutoff valve", 14], ["Braided supply line", 9.5],
+    ["Kitchen faucet (mid-range)", 165], ["Fill valve + flapper kit", 24], ["Pressure-reducing valve ¾″", 95], ["40 gal gas water heater", 780],
+    ["Expansion tank 2 gal", 48], ["Sharkbite ½″ coupling", 8],
+  ];
+  let quote = load("pjk.quote", null) || { customer: "Example: Dana Ruiz", job: "Replace 40 gal gas water heater", lines: [
+    { id: uid(), name: "40 gal gas water heater", qty: 1, price: 780 }, { id: uid(), name: "Expansion tank 2 gal", qty: 1, price: 48 },
+    { id: uid(), name: "¾″ copper pipe Type L (ft)", qty: 6, price: 7.25 }, { id: uid(), name: "¼-turn shutoff valve", qty: 1, price: 14 } ],
+    hours: 3, rate: 95, markup: 20, tax: 7, trip: 75 };
+
+  $("#catalog").innerHTML = CATALOG.map(([n, p], i) => `<button type="button" data-i="${i}">+ ${esc(n)}</button>`).join("");
+  $("#catalog").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-i]"); if (!b) return; const [name, price] = CATALOG[+b.dataset.i];
+    const ex = quote.lines.find((l) => l.name === name); if (ex) ex.qty = (+ex.qty || 0) + 1; else quote.lines.push({ id: uid(), name, qty: 1, price });
+    saveQuote(); renderLines(); renderTotals(); toast("Added " + name);
+  });
+  $("#addLine").addEventListener("click", () => { quote.lines.push({ id: uid(), name: "", qty: 1, price: 0 }); saveQuote(); renderLines(); renderTotals(); document.querySelector("#lines .line:last-child input")?.focus(); });
+
+  function renderLines() {
+    $("#lines").innerHTML = quote.lines.length ? quote.lines.map((l) => `<div class="line" data-id="${l.id}">
+      <input aria-label="Item" data-k="name" value="${esc(l.name)}" placeholder="Item">
+      <input aria-label="Quantity" data-k="qty" class="num" type="number" inputmode="decimal" min="0" step="any" value="${esc(l.qty)}">
+      <input aria-label="Price each" data-k="price" class="num" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(l.price)}">
+      <button type="button" class="x" aria-label="Remove item">✕</button></div>`).join("")
+      : `<div class="empty small">No parts yet. Tap a part above or add a custom item.</div>`;
+  }
+  $("#lines").addEventListener("input", (e) => { const row = e.target.closest(".line"); if (!row) return; const l = quote.lines.find((x) => x.id === row.dataset.id); l[e.target.dataset.k] = e.target.value; saveQuote(); renderTotals(); });
+  $("#lines").addEventListener("click", (e) => { if (!e.target.closest(".x")) return; const id = e.target.closest(".line").dataset.id; quote.lines = quote.lines.filter((x) => x.id !== id); saveQuote(); renderLines(); renderTotals(); });
+
+  const qFields = { customer: "#q-customer", job: "#q-job", hours: "#q-hours", rate: "#q-rate", markup: "#q-markup", tax: "#q-tax", trip: "#q-trip" };
+  Object.entries(qFields).forEach(([k, s]) => $(s).addEventListener("input", () => { quote[k] = $(s).value; saveQuote(); renderTotals(); }));
+  function saveQuote() { quote.customer = $("#q-customer").value; quote.job = $("#q-job").value; save("pjk.quote", quote); }
+
+  function calcQuote() {
+    const partsCost = quote.lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0), 0);
+    const parts = partsCost * (1 + num($("#q-markup")) / 100);
+    const tax = parts * num($("#q-tax")) / 100;
+    const labor = num($("#q-hours")) * num($("#q-rate"));
+    const trip = num($("#q-trip"));
+    return { parts, tax, labor, trip, total: parts + tax + labor + trip };
+  }
+  function renderTotals() {
+    const t = calcQuote();
+    $("#totals").innerHTML = `
+      <div><span>Parts (incl. markup)</span><span class="num">${money(t.parts)}</span></div>
+      <div><span>Tax on parts</span><span class="num">${money(t.tax)}</span></div>
+      <div><span>Labor · ${num($("#q-hours"))} hr × ${money(num($("#q-rate")))}</span><span class="num">${money(t.labor)}</span></div>
+      <div><span>Trip / call-out</span><span class="num">${money(t.trip)}</span></div>
+      <div class="grand"><span>Total</span><span>${money(t.total)}</span></div>`;
+  }
+  function renderQuote() { Object.entries(qFields).forEach(([k, s]) => ($(s).value = quote[k] ?? "")); renderLines(); renderTotals(); }
+
+  function quoteText() {
+    const t = calcQuote(); const m = 1 + num($("#q-markup")) / 100;
+    const lines = quote.lines.filter((l) => l.name).map((l) => `  ${l.qty} × ${l.name} — ${money((parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0) * m)}`);
+    return [`QUOTE${quote.customer ? " for " + quote.customer : ""}`, quote.job ? `Job: ${quote.job}` : "", `Date: ${new Date().toLocaleDateString()}`, "",
+      "Parts:", ...(lines.length ? lines : ["  (none)"]), `Tax on parts: ${money(t.tax)}`,
+      `Labor (${num($("#q-hours"))} hr): ${money(t.labor)}`, `Trip / call-out: ${money(t.trip)}`, "", `TOTAL: ${money(t.total)}`].filter((x, i) => x !== "" || i > 2).join("\n");
+  }
+  $("#copyQuote").addEventListener("click", () => {
+    const txt = quoteText(); const ta = $("#quoteText");
+    const fallback = () => { ta.value = txt; ta.hidden = false; ta.style.minHeight = "220px"; ta.focus(); ta.select(); toast("Select the text below and copy it"); };
+    try { navigator.clipboard.writeText(txt).then(() => { ta.hidden = true; toast("Quote copied"); }, fallback); } catch { fallback(); }
+  });
+  $("#clearQuote").addEventListener("click", () => { quote = { customer: "", job: "", lines: [], hours: 1, rate: quote.rate, markup: quote.markup, tax: quote.tax, trip: quote.trip }; save("pjk.quote", quote); renderQuote(); toast("Quote cleared"); });
+
+  /* ---------- Calculators ---------- */
+  // Actual inside diameters (inches)
+  const PIPES = [
+    ["Copper Type L ½″", 0.545], ["Copper Type L ¾″", 0.785], ["Copper Type L 1″", 1.025], ["Copper Type L 1¼″", 1.265],
+    ["PEX ½″", 0.475], ["PEX ¾″", 0.671], ["PEX 1″", 0.862],
+    ["PVC Sch 40 1½″", 1.59], ["PVC Sch 40 2″", 2.047], ["PVC Sch 40 3″", 3.042], ["PVC Sch 40 4″", 4.026],
+  ];
+  $("#c-pipe").innerHTML = PIPES.map(([n, d], i) => `<option value="${i}" ${i === 1 ? "selected" : ""}>${n}</option>`).join("");
+  const fmt = (n, d = 2) => (Number.isFinite(n) ? n : 0).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: 0 });
+  const toFrac = (inches) => { const whole = Math.floor(inches); const e = Math.round((inches - whole) * 8); const fr = ["", "⅛", "¼", "⅜", "½", "⅝", "¾", "⅞"]; return e === 8 ? `${whole + 1}″` : `${whole || (e ? "" : "0")}${fr[e]}″`; };
+
+  function calc() {
+    const [pname, id] = PIPES[+$("#c-pipe").value]; const len = num($("#c-len"));
+    const galPerFt = Math.PI / 4 * id * id * 12 / 231; const gal = galPerFt * len;
+    $("#r-vol").textContent = `${fmt(gal)} gal`;
+    $("#r-vol2").textContent = `${fmt(gal * 3.785)} L · ${fmt(galPerFt, 3)} gal per ft · ID ${id}″`;
+
+    const drop = num($("#c-run")) * parseFloat($("#c-slope").value);
+    $("#r-drop").textContent = `${toFrac(drop)} drop`;
+
+    const psi = num($("#c-psi")) - num($("#c-height")) * 0.433;
+    $("#r-psi").textContent = `${fmt(psi, 1)} psi`;
+    $("#r-psi2").textContent = psi < 20 ? "Below 20 psi: most fixtures will run weak. Consider a booster pump." : psi > 80 ? "Above 80 psi: code calls for a pressure-reducing valve." : "Static pressure at the fixture, before friction loss.";
+
+    const fhr = num($("#h-shower")) * 10 + num($("#h-bath")) * 20 + num($("#h-dish")) * 6 + num($("#h-wash")) * 7 + num($("#h-sink")) * 4;
+    $("#r-fhr").textContent = `${fmt(fhr, 0)} gal/hr`;
+    const tank = fhr <= 45 ? "30–40 gal tank" : fhr <= 60 ? "40 gal gas or 50 gal electric" : fhr <= 75 ? "50 gal gas or 65 gal electric" : fhr <= 90 ? "75 gal gas or 80 gal electric" : "Consider a tankless unit or two tanks";
+    $("#r-fhr2").textContent = `Look for an FHR of at least ${fmt(fhr, 0)} gal. Typical fit: ${tank}.`;
+  }
+  document.querySelectorAll("#tab-calcs input, #tab-calcs select").forEach((el) => el.addEventListener("input", calc));
+
+  /* ---------- Boot ---------- */
+  renderJobs(); renderQuote(); calc();
+  showTab(load("pjk.tab", "jobs"));
+})();
+</script>

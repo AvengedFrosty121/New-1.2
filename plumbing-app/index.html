@@ -11,459 +11,257 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 </head>
 <body>
-<title>Plumber's Job Kit</title>
+<title>45° Offset Calculator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: one-column phone app — sticky header, scrolling panel, fixed bottom tab bar (Jobs / Quote / Calcs). Copper accent, PEX-blue secondary. */
+/* Layout: single column phone tool — pick pipe, size, fitting; enter offset; diagram window shows the cut piece. Copper accent, blueprint-style diagram. */
 :root {
   --bg: #eef2f5; --surface: #ffffff; --sunk: #e3e9ee; --ink: #14212e; --muted: #5a6a79; --line: #d3dbe2;
-  --copper: #b0522a; --copper-ink: #ffffff; --pex: #1d6bb0; --ok: #2c7a4c; --warn: #9a6200; --bad: #b3261e;
+  --copper: #b0522a; --copper-ink: #ffffff; --pex: #1d6bb0; --pipe: #8a99a8; --warn: #9a6200;
   --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-  --r: 10px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0d141b; --surface: #15202a; --sunk: #1b2834; --ink: #e5ecf2; --muted: #92a2b1; --line: #263543;
-  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --ok: #5fbf86; --warn: #e3a845; --bad: #f2867d; color-scheme: dark } }
+  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --pipe: #607384; --warn: #e3a845; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0d141b; --surface: #15202a; --sunk: #1b2834; --ink: #e5ecf2; --muted: #92a2b1; --line: #263543;
-  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --ok: #5fbf86; --warn: #e3a845; --bad: #f2867d; color-scheme: dark }
+  --copper: #e0814f; --copper-ink: #1a0f08; --pex: #5ea8e8; --pipe: #607384; --warn: #e3a845; color-scheme: dark }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
-.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 32px; display: grid; gap: 14px; }
 
-header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
-header.top .wrap { display: flex; align-items: center; gap: 12px; padding-block: 12px; }
-.mark { width: 34px; height: 34px; flex: none; }
-h1 { font-family: var(--display); font-weight: 700; font-size: 1.55rem; letter-spacing: .01em; margin: 0; line-height: 1; }
+header { display: flex; align-items: center; gap: 12px; }
+.mark { width: 36px; height: 36px; flex: none; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.7rem; margin: 0; line-height: 1; }
 .sub { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
 
-main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
-h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0; text-wrap: balance; }
-h3 { font-family: var(--display); font-weight: 600; font-size: 1.15rem; margin: 0; }
-.panel { display: grid; gap: 14px; }
-.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.spread { justify-content: space-between; }
-.muted { color: var(--muted); }
-.small { font-size: .85rem; }
-.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+label, .lbl { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; min-width: 0; }
+select, input { font: 500 1.05rem var(--body); color: var(--ink); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px; width: 100%; min-height: 48px; text-transform: none; letter-spacing: 0; }
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--pex); outline-offset: 2px; }
+.len { display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 8px; }
+.len span { font-size: .72rem; }
+.len.two { grid-template-columns: 1fr 1.1fr; }
+.saved { color: var(--pex); text-transform: none; letter-spacing: 0; font-weight: 600; }
+.need { color: var(--warn); text-transform: none; letter-spacing: 0; font-weight: 600; }
+.unit { display: grid; gap: 2px; }
 
-button, .btn { font: 600 .95rem var(--body); border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 14px; cursor: pointer; min-height: 42px; }
-button.primary { background: var(--copper); border-color: var(--copper); color: var(--copper-ink); }
-button.danger { color: var(--bad); border-color: var(--bad); }
-button.ghost { background: transparent; border-color: transparent; color: var(--pex); padding-inline: 6px; }
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--pex); outline-offset: 2px; }
-
-.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-.chip { border-radius: 999px; min-height: 36px; padding: 6px 14px; font-size: .9rem; white-space: nowrap; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; min-width: 0; }
-.job { cursor: pointer; }
-.job .addr { overflow-wrap: anywhere; }
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
-.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.s-scheduled { color: var(--pex); } .s-progress { color: var(--warn); } .s-done { color: var(--ok); }
-.tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); border: 1px dashed var(--line); padding: 1px 6px; border-radius: 4px; }
-.details { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
-.details dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
-.details dt { color: var(--muted); font-size: .85rem; } .details dd { margin: 0; overflow-wrap: anywhere; }
-.empty { text-align: center; padding: 28px 12px; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
-
-label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); font-weight: 500; min-width: 0; }
-input, select, textarea { font: 400 1rem var(--body); color: var(--ink); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px; width: 100%; min-height: 44px; }
-textarea { min-height: 72px; resize: vertical; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 380px) { .grid2 { grid-template-columns: 1fr; } }
-
-/* Quote */
-.lines { display: grid; gap: 8px; }
-.line { display: grid; grid-template-columns: 1fr 64px 84px 36px; gap: 6px; align-items: center; }
-.line input { padding: 8px; min-height: 40px; }
-.line .x { min-height: 40px; padding: 0; color: var(--muted); }
-.line-head { display: grid; grid-template-columns: 1fr 64px 84px 36px; gap: 6px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.catalog { display: flex; flex-wrap: wrap; gap: 6px; }
-.catalog button { font-size: .85rem; min-height: 36px; padding: 6px 10px; font-weight: 500; }
-.totals { display: grid; gap: 4px; }
-.totals div { display: flex; justify-content: space-between; gap: 12px; }
-.totals .grand { font-family: var(--display); font-size: 1.6rem; font-weight: 700; border-top: 2px solid var(--ink); padding-top: 6px; margin-top: 4px; }
-.totals .grand span:last-child { font-family: var(--mono); font-size: 1.35rem; color: var(--copper); }
-
-/* Calcs */
-.result { background: var(--sunk); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
-.result .big { font-family: var(--mono); font-size: 1.4rem; color: var(--copper); }
-.ref { font-size: .8rem; color: var(--muted); }
-
-/* Bottom tabs */
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
-nav.tabs .wrap { display: grid; grid-template-columns: repeat(3, 1fr); }
-nav.tabs button { border: 0; border-radius: 0; background: transparent; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 10px; min-height: 60px; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
-nav.tabs button svg { width: 24px; height: 24px; }
-nav.tabs button[aria-selected="true"] { color: var(--copper); box-shadow: inset 0 3px 0 var(--copper); }
-
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; z-index: 20; max-width: calc(100% - 32px); }
-@media (prefers-reduced-motion: no-preference) { .toast { animation: rise .2s ease-out; } @keyframes rise { from { transform: translate(-50%, 8px); opacity: 0; } } }
+/* Result window */
+.window { background: var(--surface); border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; }
+.window-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 14px; background: var(--ink); color: var(--bg); font: 600 .8rem var(--body); text-transform: uppercase; letter-spacing: .08em; }
+.diagram { display: block; width: 100%; height: auto; background:
+  linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 20px 20px,
+  linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 20px 20px; background-color: var(--sunk); }
+.cut { display: grid; gap: 2px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.cut .k { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.cut .v { font-family: var(--mono); font-weight: 700; font-size: 2.3rem; line-height: 1.1; color: var(--copper); font-variant-numeric: tabular-nums; }
+.nums { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
+.nums div { padding: 10px 14px; display: grid; gap: 2px; min-width: 0; }
+.nums div + div { border-left: 1px solid var(--line); }
+.nums .k { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.nums .v { font-family: var(--mono); font-size: 1rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 360px) { .nums { grid-template-columns: 1fr; } .nums div + div { border-left: 0; border-top: 1px solid var(--line); } }
+.note { font-size: .85rem; color: var(--muted); margin: 0; }
+.warn { color: var(--warn); font-weight: 600; }
+.src { font-size: .8rem; color: var(--muted); margin: 0; overflow-wrap: anywhere; }
+.src a { color: var(--pex); }
 </style>
 
-<header class="top">
-  <div class="wrap">
-    <svg class="mark" viewBox="0 0 34 34" aria-hidden="true">
-      <rect x="1" y="1" width="32" height="32" rx="8" fill="var(--copper)"/>
-      <path d="M8 11h11a5 5 0 0 1 5 5v9" fill="none" stroke="var(--copper-ink)" stroke-width="4" stroke-linecap="round"/>
-      <path d="M24 27c-2-2.5-3-4-3-5.2a3 3 0 0 1 6 0c0 1.2-1 2.7-3 5.2z" fill="var(--copper-ink)" transform="translate(0 2)"/>
+<div class="wrap">
+  <header>
+    <svg class="mark" viewBox="0 0 36 36" aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="8" fill="var(--copper)"/>
+      <path d="M6 25h8l8-14h8" fill="none" stroke="var(--copper-ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div>
-      <h1>Plumber's Job Kit</h1>
-      <div class="sub" id="subline">Jobs · Quotes · Calculators</div>
+      <h1>45° Offset Calculator</h1>
+      <div class="sub">Cut length with fitting take-off</div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main class="wrap">
-  <!-- JOBS -->
-  <section class="panel" id="tab-jobs">
-    <div class="row spread">
-      <h2>Jobs</h2>
-      <button class="primary" id="newJob">+ New job</button>
+  <section class="card" aria-label="Pipe and fitting">
+    <label for="material">Type of pipe<select id="material"></select></label>
+    <label for="size">Pipe size<select id="size"></select></label>
+    <label for="brand">Fitting brand<select id="brand"></select></label>
+    <div class="lbl" id="toLbl">Take-off for one 45 <span id="toState"></span></div>
+    <div class="len two" role="group" aria-labelledby="toLbl">
+      <div class="unit"><input id="toIn" type="number" inputmode="numeric" min="0" step="1" aria-label="Take-off inches"><span class="lbl">Inches</span></div>
+      <div class="unit"><select id="toFr" aria-label="Take-off fraction of an inch"></select><span class="lbl">Fraction</span></div>
     </div>
-    <div class="chips" id="filters" role="group" aria-label="Filter jobs by status"></div>
-
-    <form class="card" id="jobForm" hidden>
-      <h3 id="formTitle">New job</h3>
-      <label>Customer<input id="f-customer" required autocomplete="off" placeholder="Name"></label>
-      <div class="grid2">
-        <label>Phone<input id="f-phone" type="tel" placeholder="(555) 555-0100"></label>
-        <label>Date<input id="f-date" type="date"></label>
-      </div>
-      <label>Address<input id="f-address" placeholder="Street, city"></label>
-      <label>Problem / work<textarea id="f-issue" placeholder="e.g. Kitchen sink drain slow, P-trap leaking"></textarea></label>
-      <label>Status
-        <select id="f-status"><option value="scheduled">Scheduled</option><option value="progress">In progress</option><option value="done">Done</option></select>
-      </label>
-      <div class="row"><button class="primary" type="submit">Save job</button><button type="button" id="cancelJob">Cancel</button></div>
-    </form>
-
-    <div class="panel" id="jobList"></div>
+    <p class="note" id="toHelp"></p>
   </section>
 
-  <!-- QUOTE -->
-  <section class="panel" id="tab-quote" hidden>
-    <div class="row spread"><h2>Quote</h2><button class="ghost" id="clearQuote">Clear</button></div>
-    <div class="card">
-      <div class="grid2">
-        <label>Customer<input id="q-customer" placeholder="Name"></label>
-        <label>Job<input id="q-job" placeholder="e.g. Replace water heater"></label>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row spread"><h3>Parts</h3><span class="tag">Example prices — edit to yours</span></div>
-      <div class="catalog" id="catalog"></div>
-      <div class="line-head"><span>Item</span><span>Qty</span><span>Each $</span><span></span></div>
-      <div class="lines" id="lines"></div>
-      <button type="button" id="addLine">+ Custom item</button>
-    </div>
-
-    <div class="card">
-      <h3>Labor &amp; extras</h3>
-      <div class="grid2">
-        <label>Labor hours<input id="q-hours" type="number" inputmode="decimal" min="0" step="0.25" value="2"></label>
-        <label>Rate $/hr<input id="q-rate" type="number" inputmode="decimal" min="0" step="1" value="95"></label>
-        <label>Parts markup %<input id="q-markup" type="number" inputmode="decimal" min="0" step="1" value="20"></label>
-        <label>Tax on parts %<input id="q-tax" type="number" inputmode="decimal" min="0" step="0.1" value="7"></label>
-        <label>Trip / call-out $<input id="q-trip" type="number" inputmode="decimal" min="0" step="1" value="75"></label>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="totals" id="totals"></div>
-      <button class="primary" id="copyQuote">Copy quote as text</button>
-      <textarea id="quoteText" readonly hidden aria-label="Quote text"></textarea>
+  <section class="card" aria-label="Offset">
+    <div class="lbl" id="offLbl">Offset (center of pipe to center of pipe)</div>
+    <div class="len" role="group" aria-labelledby="offLbl">
+      <div class="unit"><input id="ft" type="number" inputmode="numeric" min="0" step="1" value="0" aria-label="Feet"><span class="lbl">Feet</span></div>
+      <div class="unit"><input id="in" type="number" inputmode="numeric" min="0" step="1" value="12" aria-label="Inches"><span class="lbl">Inches</span></div>
+      <div class="unit"><select id="fr" aria-label="Fraction of an inch"></select><span class="lbl">Fraction</span></div>
     </div>
   </section>
 
-  <!-- CALCS -->
-  <section class="panel" id="tab-calcs" hidden>
-    <h2>Calculators</h2>
-
-    <div class="card">
-      <h3>Water in a pipe run</h3>
-      <p class="ref" style="margin:0">How much water to drain or fill. Uses actual inside diameters.</p>
-      <div class="grid2">
-        <label>Pipe
-          <select id="c-pipe"></select>
-        </label>
-        <label>Length (ft)<input id="c-len" type="number" inputmode="decimal" min="0" value="50"></label>
-      </div>
-      <div class="result"><span class="big num" id="r-vol"></span><span class="ref" id="r-vol2"></span></div>
-    </div>
-
-    <div class="card">
-      <h3>Drain slope</h3>
-      <div class="grid2">
-        <label>Run length (ft)<input id="c-run" type="number" inputmode="decimal" min="0" value="20"></label>
-        <label>Slope
-          <select id="c-slope"><option value="0.25">¼″ per ft (pipe ≤ 3″)</option><option value="0.125">⅛″ per ft (4″ and up)</option><option value="0.5">½″ per ft</option></select>
-        </label>
-      </div>
-      <div class="result"><span class="big num" id="r-drop"></span><span class="ref">Total fall from start to end of the run.</span></div>
-    </div>
-
-    <div class="card">
-      <h3>Pressure &amp; elevation</h3>
-      <p class="ref" style="margin:0">Each foot of height costs 0.433 psi.</p>
-      <div class="grid2">
-        <label>Pressure at meter (psi)<input id="c-psi" type="number" inputmode="decimal" min="0" value="60"></label>
-        <label>Fixture height above (ft)<input id="c-height" type="number" inputmode="decimal" value="20"></label>
-      </div>
-      <div class="result"><span class="big num" id="r-psi"></span><span class="ref" id="r-psi2"></span></div>
-    </div>
-
-    <div class="card">
-      <h3>Water heater sizing</h3>
-      <p class="ref" style="margin:0">Hot water used in the busiest hour. Pick a tank whose first-hour rating (FHR) meets it.</p>
-      <div class="grid2">
-        <label>Showers<input id="h-shower" type="number" inputmode="numeric" min="0" value="3"></label>
-        <label>Baths<input id="h-bath" type="number" inputmode="numeric" min="0" value="0"></label>
-        <label>Dishwasher loads<input id="h-dish" type="number" inputmode="numeric" min="0" value="1"></label>
-        <label>Clothes washer loads<input id="h-wash" type="number" inputmode="numeric" min="0" value="1"></label>
-        <label>Kitchen sink uses<input id="h-sink" type="number" inputmode="numeric" min="0" value="1"></label>
-      </div>
-      <div class="result"><span class="big num" id="r-fhr"></span><span class="ref" id="r-fhr2"></span></div>
-      <p class="ref" style="margin:0">Hot gallons per use: shower 10, bath 20, dishwasher 6, washer 7, sink 4.</p>
+  <section class="window" aria-live="polite">
+    <div class="window-bar"><span>Offset layout</span><span id="winTitle"></span></div>
+    <svg class="diagram" viewBox="0 0 360 250" role="img" aria-labelledby="diagTitle">
+      <title id="diagTitle">Two parallel pipes joined by two 45 degree fittings and a cut piece</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink)"/></marker>
+      </defs>
+      <!-- Pipes: lower-left horizontal, upper-right horizontal, joined by a 45° travel -->
+      <!-- Fitting 1 center at (110,190); fitting 2 center at (230,70): dx = dy = 120 -->
+      <line x1="10" y1="190" x2="110" y2="190" stroke="var(--pipe)" stroke-width="18" stroke-linecap="butt"/>
+      <line x1="230" y1="70" x2="350" y2="70" stroke="var(--pipe)" stroke-width="18" stroke-linecap="butt"/>
+      <!-- cut piece between fittings (along 45°), take-off shown as fitting body -->
+      <line id="cutLine" x1="127" y1="173" x2="213" y2="87" stroke="var(--copper)" stroke-width="18"/>
+      <!-- fittings -->
+      <g fill="var(--surface)" stroke="var(--ink)" stroke-width="2">
+        <path d="M95 179 h15 l20 -20 l13 13 l-26 26 h-17 z"/>
+        <path d="M245 81 h-15 l-20 20 l-13 -13 l26 -26 h17 z"/>
+      </g>
+      <!-- centerlines -->
+      <g stroke="var(--ink)" stroke-width="1" stroke-dasharray="6 4" fill="none" opacity=".7">
+        <line x1="10" y1="190" x2="230" y2="190"/>
+        <line x1="110" y1="190" x2="230" y2="70"/>
+        <line x1="230" y1="70" x2="350" y2="70"/>
+      </g>
+      <circle cx="110" cy="190" r="3.5" fill="var(--ink)"/><circle cx="230" cy="70" r="3.5" fill="var(--ink)"/>
+      <!-- offset dimension (vertical) -->
+      <line x1="300" y1="186" x2="300" y2="74" stroke="var(--ink)" stroke-width="1.3" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <line x1="236" y1="190" x2="310" y2="190" stroke="var(--ink)" stroke-width="1"/>
+      <text x="306" y="125" fill="var(--ink)" font-family="var(--body)" font-size="11" font-weight="600">OFFSET</text>
+      <text id="tOff" x="306" y="140" fill="var(--ink)" font-family="var(--mono)" font-size="12"></text>
+      <!-- run dimension (horizontal) -->
+      <line x1="114" y1="226" x2="226" y2="226" stroke="var(--ink)" stroke-width="1.3" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <line x1="110" y1="196" x2="110" y2="234" stroke="var(--ink)" stroke-width="1"/>
+      <line x1="230" y1="80" x2="230" y2="234" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="170" y="220" text-anchor="middle" fill="var(--ink)" font-family="var(--body)" font-size="11" font-weight="600">RUN</text>
+      <text id="tRun" x="170" y="243" text-anchor="middle" fill="var(--ink)" font-family="var(--mono)" font-size="12"></text>
+      <!-- travel label along diagonal -->
+      <g transform="translate(124 100) rotate(-45)">
+        <text x="0" y="0" text-anchor="middle" fill="var(--ink)" font-family="var(--body)" font-size="11" font-weight="600">TRAVEL</text>
+        <text id="tTrav" x="0" y="14" text-anchor="middle" fill="var(--ink)" font-family="var(--mono)" font-size="12"></text>
+      </g>
+      <!-- cut label -->
+      <g transform="translate(202 154) rotate(-45)">
+        <text x="0" y="0" text-anchor="middle" fill="var(--copper)" font-family="var(--body)" font-size="11" font-weight="700">CUT</text>
+        <text id="tCut" x="0" y="14" text-anchor="middle" fill="var(--copper)" font-family="var(--mono)" font-size="12" font-weight="700"></text>
+      </g>
+      <text x="12" y="20" fill="var(--muted)" font-family="var(--body)" font-size="10">Not to scale · dots are fitting centers</text>
+    </svg>
+    <div class="cut"><span class="k">Cut piece (pipe length to cut)</span><span class="v" id="vCut"></span><span class="note" id="cutNote"></span></div>
+    <div class="nums">
+      <div><span class="k">Travel</span><span class="v" id="vTrav"></span></div>
+      <div><span class="k">Run</span><span class="v" id="vRun"></span></div>
+      <div><span class="k">Take-off ×2</span><span class="v" id="vTo"></span></div>
     </div>
   </section>
-</main>
 
-<nav class="tabs" role="tablist" aria-label="Sections">
-  <div class="wrap">
-    <button role="tab" data-tab="jobs" aria-selected="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h5"/></svg>Jobs</button>
-    <button role="tab" data-tab="quote" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M16 7.5c-.6-1.5-2.2-2.5-4-2.5-2.2 0-4 1.3-4 3s1.8 2.6 4 3 4 1.3 4 3-1.8 3-4 3c-1.8 0-3.4-1-4-2.5"/></svg>Quote</button>
-    <button role="tab" data-tab="calcs" aria-selected="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10a4 4 0 0 1 4 4v9M3 12h8a2 2 0 0 1 2 2v7"/><path d="M19 3.5c1.3 1.7 2 2.8 2 3.6a2 2 0 0 1-4 0c0-.8.7-1.9 2-3.6z"/></svg>Calcs</button>
-  </div>
-</nav>
-
-<div class="toast" id="toast" role="status" hidden></div>
+  <section class="card">
+    <p class="note"><strong>How it's worked out:</strong> Travel = Offset × 1.414. Cut piece = Travel − take-off of both 45s. Results round to the nearest 1/16″.</p>
+    <p class="note"><strong>Measuring take-off:</strong> lay a 45 on its side and mark the point where the centerlines of its two ends cross. Measure from that point straight along one end's centerline to where the pipe stops: the socket bottom or hub shoulder on glue and solder fittings, the end of thread engagement on threaded fittings. The manufacturer's dimension sheet lists it too, usually as "G" or "center to socket bottom".</p>
+  </section>
+</div>
 
 <script>
+/* Pipe types, US sizes, and fitting brands sold for each. Take-off values are entered
+   by the user once per type + size + brand and saved on the device. */
+const PIPES = {
+  "PVC DWV (Sch 40)":          { short: "PVC DWV",  sizes: ["1¼″","1½″","2″","3″","4″","6″"], def: "2″", brands: ["Charlotte Pipe","NIBCO","Spears","Genova","Other"] },
+  "ABS DWV":                   { short: "ABS",      sizes: ["1½″","2″","3″","4″","6″"], def: "2″", brands: ["Charlotte Pipe","NIBCO","Other"] },
+  "PVC pressure (Sch 40)":     { short: "PVC Sch 40", sizes: ["½″","¾″","1″","1¼″","1½″","2″","3″","4″"], def: "1″", brands: ["Spears","Lasco","Dura","NIBCO","Charlotte Pipe","Other"] },
+  "PVC pressure (Sch 80)":     { short: "PVC Sch 80", sizes: ["½″","¾″","1″","1¼″","1½″","2″","3″","4″"], def: "1″", brands: ["Spears","Lasco","Dura","NIBCO","Other"] },
+  "CPVC (CTS)":                { short: "CPVC",     sizes: ["½″","¾″","1″","1¼″","1½″","2″"], def: "¾″", brands: ["Charlotte Pipe","NIBCO","Spears","Genova","Other"] },
+  "Copper (solder)":           { short: "Copper",   sizes: ["½″","¾″","1″","1¼″","1½″","2″","3″","4″"], def: "¾″", brands: ["NIBCO","Mueller Streamline","Elkhart","Other"] },
+  "Copper (press)":            { short: "Copper press", sizes: ["½″","¾″","1″","1¼″","1½″","2″"], def: "¾″", brands: ["Viega ProPress","NIBCO Press","Mueller","Other"] },
+  "Cast iron (no-hub)":        { short: "No-hub",   sizes: ["1½″","2″","3″","4″","5″","6″","8″"], def: "4″", brands: ["Charlotte Pipe","Tyler Pipe","AB&I","Other"] },
+  "Steel (threaded, black/galv)": { short: "Threaded", sizes: ["½″","¾″","1″","1¼″","1½″","2″"], def: "¾″", brands: ["Ward","Anvil","Mueller","Matco-Norca","Other"] },
+};
+
 (() => {
   const $ = (s) => document.querySelector(s);
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const money = (n) => "$" + (Number.isFinite(n) ? n : 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const num = (el) => { const v = parseFloat(el.value); return Number.isFinite(v) ? v : 0; };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-  const uid = () => Math.random().toString(36).slice(2, 10);
-  let toastT;
-  const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2200); };
 
-  /* ---------- Tabs ---------- */
-  const tabs = ["jobs", "quote", "calcs"];
-  function showTab(name) {
-    if (!tabs.includes(name)) name = "jobs";
-    tabs.forEach((t) => { $("#tab-" + t).hidden = t !== name; });
-    document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
-    save("pjk.tab", name);
-    window.scrollTo(0, 0);
-  }
-  document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
-
-  /* ---------- Jobs ---------- */
-  const STATUS = { scheduled: "Scheduled", progress: "In progress", done: "Done" };
-  const today = new Date(); const iso = (d) => d.toISOString().slice(0, 10);
-  const plus = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return iso(d); };
-  const EXAMPLES = [
-    { id: uid(), example: true, customer: "Example: Dana Ruiz", phone: "(555) 555-0142", address: "418 Alder St", issue: "Water heater (40 gal gas) leaking at the base. Quote replacement.", date: plus(0), status: "progress" },
-    { id: uid(), example: true, customer: "Example: Corner Café", phone: "(555) 555-0187", address: "22 Main St", issue: "Grease buildup in 2″ kitchen line. Snake and jet.", date: plus(1), status: "scheduled" },
-    { id: uid(), example: true, customer: "Example: M. Okafor", phone: "(555) 555-0119", address: "9 Birch Ct, Apt 3", issue: "Replaced wax ring and closet bolts on upstairs toilet.", date: plus(-2), status: "done" },
-  ];
-  let jobs = load("pjk.jobs", null) || EXAMPLES;
-  let filter = "all", openId = null, editId = null, confirmDel = null;
-
-  function renderFilters() {
-    const counts = { all: jobs.length }; Object.keys(STATUS).forEach((k) => (counts[k] = jobs.filter((j) => j.status === k).length));
-    $("#filters").innerHTML = [["all", "All"], ...Object.entries(STATUS)].map(([k, l]) =>
-      `<button class="chip" data-f="${k}" aria-pressed="${filter === k}">${l} <span class="num">${counts[k]}</span></button>`).join("");
-  }
-  const fmtDate = (s) => { if (!s) return "No date"; const d = new Date(s + "T12:00"); return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }); };
-
-  function renderJobs() {
-    renderFilters();
-    const order = { progress: 0, scheduled: 1, done: 2 };
-    const list = jobs.filter((j) => filter === "all" || j.status === filter)
-      .sort((a, b) => order[a.status] - order[b.status] || (a.date || "").localeCompare(b.date || ""));
-    if (!list.length) {
-      $("#jobList").innerHTML = `<div class="empty">No ${filter === "all" ? "" : STATUS[filter].toLowerCase() + " "}jobs yet.<br>Tap <strong>+ New job</strong> to add one.</div>`;
-      return;
-    }
-    $("#jobList").innerHTML = list.map((j) => {
-      const open = openId === j.id;
-      return `<article class="card job" data-id="${j.id}" tabindex="0" aria-expanded="${open}">
-        <div class="row spread"><h3>${esc(j.customer)}</h3><span class="pill s-${j.status}">${STATUS[j.status]}</span></div>
-        <div class="row small muted"><span>${fmtDate(j.date)}</span>${j.address ? `<span>·</span><span class="addr">${esc(j.address)}</span>` : ""}${j.example ? ` <span class="tag">Example</span>` : ""}</div>
-        ${open ? `<div class="details">
-          <dl>
-            ${j.phone ? `<dt>Phone</dt><dd class="num">${esc(j.phone)}</dd>` : ""}
-            ${j.issue ? `<dt>Work</dt><dd>${esc(j.issue)}</dd>` : ""}
-          </dl>
-          <div class="row">
-            ${j.status !== "done" ? `<button class="primary" data-act="advance">${j.status === "scheduled" ? "Start job" : "Mark done"}</button>` : `<button data-act="reopen">Reopen</button>`}
-            <button data-act="quote">Quote</button>
-            <button data-act="edit">Edit</button>
-            <button class="danger" data-act="delete">${confirmDel === j.id ? "Tap again to delete" : "Delete"}</button>
-          </div>
-        </div>` : ""}
-      </article>`;
-    }).join("");
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const fracTxt = (i) => (i ? `${i / gcd(i, 16)}/${16 / gcd(i, 16)}″` : "0″");
+  function fmt(x) {
+    if (!Number.isFinite(x)) return "—";
+    const neg = x < 0; let s = Math.round(Math.abs(x) * 16);
+    const w = Math.floor(s / 16), r = s % 16;
+    const frac = r ? `${r / gcd(r, 16)}/${16 / gcd(r, 16)}` : "";
+    return (neg ? "−" : "") + (w && frac ? `${w}-${frac}″` : w ? `${w}″` : frac ? `${frac}″` : "0″");
   }
 
-  $("#filters").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { filter = b.dataset.f; renderJobs(); } });
-  $("#jobList").addEventListener("click", (e) => {
-    const card = e.target.closest(".job"); if (!card) return;
-    const j = jobs.find((x) => x.id === card.dataset.id); const act = e.target.closest("[data-act]")?.dataset.act;
-    if (!act) { openId = openId === j.id ? null : j.id; confirmDel = null; return renderJobs(); }
-    if (act === "advance") { j.status = j.status === "scheduled" ? "progress" : "done"; toast(j.status === "done" ? "Job marked done" : "Job started"); }
-    if (act === "reopen") { j.status = "progress"; toast("Job reopened"); }
-    if (act === "edit") return openForm(j);
-    if (act === "quote") { $("#q-customer").value = j.customer.replace(/^Example: /, ""); $("#q-job").value = j.issue.split(/[.\n]/)[0]; saveQuote(); renderQuote(); return showTab("quote"); }
-    if (act === "delete") {
-      if (confirmDel !== j.id) { confirmDel = j.id; return renderJobs(); }
-      jobs = jobs.filter((x) => x.id !== j.id); confirmDel = null; openId = null; toast("Job deleted");
-    }
-    save("pjk.jobs", jobs); renderJobs();
-  });
-  $("#jobList").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("job")) { e.preventDefault(); e.target.click(); } });
+  const frOpts = Array.from({ length: 16 }, (_, i) => `<option value="${i / 16}">${fracTxt(i)}</option>`).join("");
+  $("#fr").innerHTML = frOpts; $("#toFr").innerHTML = frOpts;
 
-  function openForm(j) {
-    editId = j ? j.id : null;
-    $("#formTitle").textContent = j ? "Edit job" : "New job";
-    $("#f-customer").value = j?.customer || ""; $("#f-phone").value = j?.phone || ""; $("#f-address").value = j?.address || "";
-    $("#f-issue").value = j?.issue || ""; $("#f-date").value = j?.date || iso(today); $("#f-status").value = j?.status || "scheduled";
-    $("#jobForm").hidden = false; $("#f-customer").focus();
+  const state = load("off45", {});
+  const takeoffs = load("off45.takeoffs", {});
+  const key = () => [$("#material").value, $("#size").value, $("#brand").value].join("|");
+
+  const mats = Object.keys(PIPES);
+  $("#material").innerHTML = mats.map((m) => `<option>${esc(m)}</option>`).join("");
+  if (mats.includes(state.material)) $("#material").value = state.material;
+
+  function fillLists(keepSaved) {
+    const m = PIPES[$("#material").value];
+    $("#size").innerHTML = m.sizes.map((s) => `<option>${esc(s)}</option>`).join("");
+    $("#size").value = keepSaved && m.sizes.includes(state.size) ? state.size : m.def;
+    $("#brand").innerHTML = m.brands.map((b) => `<option>${esc(b)}</option>`).join("");
+    $("#brand").value = keepSaved && m.brands.includes(state.brand) ? state.brand : m.brands[0];
+    showTakeoff();
   }
-  $("#newJob").addEventListener("click", () => openForm(null));
-  $("#cancelJob").addEventListener("click", () => { $("#jobForm").hidden = true; });
-  $("#jobForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const data = { customer: $("#f-customer").value.trim(), phone: $("#f-phone").value.trim(), address: $("#f-address").value.trim(),
-      issue: $("#f-issue").value.trim(), date: $("#f-date").value, status: $("#f-status").value };
-    if (!data.customer) return;
-    if (editId) { Object.assign(jobs.find((x) => x.id === editId), data, { example: false }); toast("Job saved"); }
-    else { const j = { id: uid(), ...data }; jobs.push(j); openId = j.id; toast("Job added"); }
-    $("#jobForm").hidden = true; save("pjk.jobs", jobs); filter = "all"; renderJobs();
-  });
-
-  /* ---------- Quote ---------- */
-  const CATALOG = [
-    ["½″ copper pipe Type L (ft)", 4.5], ["¾″ copper pipe Type L (ft)", 7.25], ["½″ PEX-A (ft)", 0.85], ["¾″ PEX-A (ft)", 1.4],
-    ["1½″ PVC P-trap", 9], ["Wax ring + closet bolts", 8.5], ["¼-turn shutoff valve", 14], ["Braided supply line", 9.5],
-    ["Kitchen faucet (mid-range)", 165], ["Fill valve + flapper kit", 24], ["Pressure-reducing valve ¾″", 95], ["40 gal gas water heater", 780],
-    ["Expansion tank 2 gal", 48], ["Sharkbite ½″ coupling", 8],
-  ];
-  let quote = load("pjk.quote", null) || { customer: "Example: Dana Ruiz", job: "Replace 40 gal gas water heater", lines: [
-    { id: uid(), name: "40 gal gas water heater", qty: 1, price: 780 }, { id: uid(), name: "Expansion tank 2 gal", qty: 1, price: 48 },
-    { id: uid(), name: "¾″ copper pipe Type L (ft)", qty: 6, price: 7.25 }, { id: uid(), name: "¼-turn shutoff valve", qty: 1, price: 14 } ],
-    hours: 3, rate: 95, markup: 20, tax: 7, trip: 75 };
-
-  $("#catalog").innerHTML = CATALOG.map(([n, p], i) => `<button type="button" data-i="${i}">+ ${esc(n)}</button>`).join("");
-  $("#catalog").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-i]"); if (!b) return; const [name, price] = CATALOG[+b.dataset.i];
-    const ex = quote.lines.find((l) => l.name === name); if (ex) ex.qty = (+ex.qty || 0) + 1; else quote.lines.push({ id: uid(), name, qty: 1, price });
-    saveQuote(); renderLines(); renderTotals(); toast("Added " + name);
-  });
-  $("#addLine").addEventListener("click", () => { quote.lines.push({ id: uid(), name: "", qty: 1, price: 0 }); saveQuote(); renderLines(); renderTotals(); document.querySelector("#lines .line:last-child input")?.focus(); });
-
-  function renderLines() {
-    $("#lines").innerHTML = quote.lines.length ? quote.lines.map((l) => `<div class="line" data-id="${l.id}">
-      <input aria-label="Item" data-k="name" value="${esc(l.name)}" placeholder="Item">
-      <input aria-label="Quantity" data-k="qty" class="num" type="number" inputmode="decimal" min="0" step="any" value="${esc(l.qty)}">
-      <input aria-label="Price each" data-k="price" class="num" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(l.price)}">
-      <button type="button" class="x" aria-label="Remove item">✕</button></div>`).join("")
-      : `<div class="empty small">No parts yet. Tap a part above or add a custom item.</div>`;
+  function showTakeoff() {
+    const v = takeoffs[key()];
+    if (v != null) { const w = Math.floor(v + 1e-9); $("#toIn").value = w; $("#toFr").value = Math.round((v - w) * 16) / 16; }
+    else { $("#toIn").value = ""; $("#toFr").value = 0; }
+    calc();
   }
-  $("#lines").addEventListener("input", (e) => { const row = e.target.closest(".line"); if (!row) return; const l = quote.lines.find((x) => x.id === row.dataset.id); l[e.target.dataset.k] = e.target.value; saveQuote(); renderTotals(); });
-  $("#lines").addEventListener("click", (e) => { if (!e.target.closest(".x")) return; const id = e.target.closest(".line").dataset.id; quote.lines = quote.lines.filter((x) => x.id !== id); saveQuote(); renderLines(); renderTotals(); });
-
-  const qFields = { customer: "#q-customer", job: "#q-job", hours: "#q-hours", rate: "#q-rate", markup: "#q-markup", tax: "#q-tax", trip: "#q-trip" };
-  Object.entries(qFields).forEach(([k, s]) => $(s).addEventListener("input", () => { quote[k] = $(s).value; saveQuote(); renderTotals(); }));
-  function saveQuote() { quote.customer = $("#q-customer").value; quote.job = $("#q-job").value; save("pjk.quote", quote); }
-
-  function calcQuote() {
-    const partsCost = quote.lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0), 0);
-    const parts = partsCost * (1 + num($("#q-markup")) / 100);
-    const tax = parts * num($("#q-tax")) / 100;
-    const labor = num($("#q-hours")) * num($("#q-rate"));
-    const trip = num($("#q-trip"));
-    return { parts, tax, labor, trip, total: parts + tax + labor + trip };
+  function storeTakeoff() {
+    if ($("#toIn").value === "" && +$("#toFr").value === 0) delete takeoffs[key()];
+    else takeoffs[key()] = (+$("#toIn").value || 0) + (+$("#toFr").value || 0);
+    save("off45.takeoffs", takeoffs); calc();
   }
-  function renderTotals() {
-    const t = calcQuote();
-    $("#totals").innerHTML = `
-      <div><span>Parts (incl. markup)</span><span class="num">${money(t.parts)}</span></div>
-      <div><span>Tax on parts</span><span class="num">${money(t.tax)}</span></div>
-      <div><span>Labor · ${num($("#q-hours"))} hr × ${money(num($("#q-rate")))}</span><span class="num">${money(t.labor)}</span></div>
-      <div><span>Trip / call-out</span><span class="num">${money(t.trip)}</span></div>
-      <div class="grand"><span>Total</span><span>${money(t.total)}</span></div>`;
-  }
-  function renderQuote() { Object.entries(qFields).forEach(([k, s]) => ($(s).value = quote[k] ?? "")); renderLines(); renderTotals(); }
-
-  function quoteText() {
-    const t = calcQuote(); const m = 1 + num($("#q-markup")) / 100;
-    const lines = quote.lines.filter((l) => l.name).map((l) => `  ${l.qty} × ${l.name} — ${money((parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0) * m)}`);
-    return [`QUOTE${quote.customer ? " for " + quote.customer : ""}`, quote.job ? `Job: ${quote.job}` : "", `Date: ${new Date().toLocaleDateString()}`, "",
-      "Parts:", ...(lines.length ? lines : ["  (none)"]), `Tax on parts: ${money(t.tax)}`,
-      `Labor (${num($("#q-hours"))} hr): ${money(t.labor)}`, `Trip / call-out: ${money(t.trip)}`, "", `TOTAL: ${money(t.total)}`].filter((x, i) => x !== "" || i > 2).join("\n");
-  }
-  $("#copyQuote").addEventListener("click", () => {
-    const txt = quoteText(); const ta = $("#quoteText");
-    const fallback = () => { ta.value = txt; ta.hidden = false; ta.style.minHeight = "220px"; ta.focus(); ta.select(); toast("Select the text below and copy it"); };
-    try { navigator.clipboard.writeText(txt).then(() => { ta.hidden = true; toast("Quote copied"); }, fallback); } catch { fallback(); }
-  });
-  $("#clearQuote").addEventListener("click", () => { quote = { customer: "", job: "", lines: [], hours: 1, rate: quote.rate, markup: quote.markup, tax: quote.tax, trip: quote.trip }; save("pjk.quote", quote); renderQuote(); toast("Quote cleared"); });
-
-  /* ---------- Calculators ---------- */
-  // Actual inside diameters (inches)
-  const PIPES = [
-    ["Copper Type L ½″", 0.545], ["Copper Type L ¾″", 0.785], ["Copper Type L 1″", 1.025], ["Copper Type L 1¼″", 1.265],
-    ["PEX ½″", 0.475], ["PEX ¾″", 0.671], ["PEX 1″", 0.862],
-    ["PVC Sch 40 1½″", 1.59], ["PVC Sch 40 2″", 2.047], ["PVC Sch 40 3″", 3.042], ["PVC Sch 40 4″", 4.026],
-  ];
-  $("#c-pipe").innerHTML = PIPES.map(([n, d], i) => `<option value="${i}" ${i === 1 ? "selected" : ""}>${n}</option>`).join("");
-  const fmt = (n, d = 2) => (Number.isFinite(n) ? n : 0).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: 0 });
-  const toFrac = (inches) => { const whole = Math.floor(inches); const e = Math.round((inches - whole) * 8); const fr = ["", "⅛", "¼", "⅜", "½", "⅝", "¾", "⅞"]; return e === 8 ? `${whole + 1}″` : `${whole || (e ? "" : "0")}${fr[e]}″`; };
 
   function calc() {
-    const [pname, id] = PIPES[+$("#c-pipe").value]; const len = num($("#c-len"));
-    const galPerFt = Math.PI / 4 * id * id * 12 / 231; const gal = galPerFt * len;
-    $("#r-vol").textContent = `${fmt(gal)} gal`;
-    $("#r-vol2").textContent = `${fmt(gal * 3.785)} L · ${fmt(galPerFt, 3)} gal per ft · ID ${id}″`;
+    const m = PIPES[$("#material").value];
+    const to = takeoffs[key()];
+    const off = (+$("#ft").value || 0) * 12 + (+$("#in").value || 0) + (+$("#fr").value || 0);
+    const travel = off * Math.SQRT2;
+    const st = $("#toState");
+    st.className = to != null ? "saved" : "need";
+    st.textContent = to != null ? "· saved for this fitting" : "· enter once for this fitting";
+    $("#toHelp").textContent = `For a ${$("#size").value} ${m.short} 45 from ${$("#brand").value}.`;
 
-    const drop = num($("#c-run")) * parseFloat($("#c-slope").value);
-    $("#r-drop").textContent = `${toFrac(drop)} drop`;
-
-    const psi = num($("#c-psi")) - num($("#c-height")) * 0.433;
-    $("#r-psi").textContent = `${fmt(psi, 1)} psi`;
-    $("#r-psi2").textContent = psi < 20 ? "Below 20 psi: most fixtures will run weak. Consider a booster pump." : psi > 80 ? "Above 80 psi: code calls for a pressure-reducing valve." : "Static pressure at the fixture, before friction loss.";
-
-    const fhr = num($("#h-shower")) * 10 + num($("#h-bath")) * 20 + num($("#h-dish")) * 6 + num($("#h-wash")) * 7 + num($("#h-sink")) * 4;
-    $("#r-fhr").textContent = `${fmt(fhr, 0)} gal/hr`;
-    const tank = fhr <= 45 ? "30–40 gal tank" : fhr <= 60 ? "40 gal gas or 50 gal electric" : fhr <= 75 ? "50 gal gas or 65 gal electric" : fhr <= 90 ? "75 gal gas or 80 gal electric" : "Consider a tankless unit or two tanks";
-    $("#r-fhr2").textContent = `Look for an FHR of at least ${fmt(fhr, 0)} gal. Typical fit: ${tank}.`;
+    $("#winTitle").textContent = `${$("#size").value} ${m.short} · ${$("#brand").value}`;
+    $("#vTrav").textContent = fmt(travel); $("#vRun").textContent = fmt(off);
+    $("#tOff").textContent = fmt(off); $("#tRun").textContent = fmt(off); $("#tTrav").textContent = fmt(travel);
+    const note = $("#cutNote");
+    const setCut = (v, t, cls, msg) => { $("#vCut").textContent = v; $("#tCut").textContent = t; note.className = cls; note.textContent = msg; };
+    if (to == null) { $("#vTo").textContent = "—"; setCut("—", "?", "note warn", "Enter the take-off for this fitting above to get the cut piece."); }
+    else {
+      const to2 = to * 2, cut = travel - to2; $("#vTo").textContent = fmt(to2);
+      if (off <= 0) setCut("—", "", "note", "Enter the offset to see the cut piece.");
+      else if (cut <= 0) setCut("Too tight", "", "note warn", `The two 45s alone take up ${fmt(to2)} of travel. With these fittings the offset must be more than ${fmt(to2 / Math.SQRT2)}.`);
+      else setCut(fmt(cut), fmt(cut), "note", `${fmt(travel)} travel − ${fmt(to)} take-off × 2.`);
+    }
+    save("off45", { material: $("#material").value, size: $("#size").value, brand: $("#brand").value, ft: $("#ft").value, in: $("#in").value, fr: $("#fr").value });
   }
-  document.querySelectorAll("#tab-calcs input, #tab-calcs select").forEach((el) => el.addEventListener("input", calc));
 
-  /* ---------- Boot ---------- */
-  renderJobs(); renderQuote(); calc();
-  showTab(load("pjk.tab", "jobs"));
+  if (state.ft != null) { $("#ft").value = state.ft; $("#in").value = state.in; $("#fr").value = state.fr; }
+  $("#material").addEventListener("change", () => fillLists(false));
+  $("#size").addEventListener("change", showTakeoff);
+  $("#brand").addEventListener("change", showTakeoff);
+  ["#toIn", "#toFr"].forEach((s) => $(s).addEventListener("input", storeTakeoff));
+  ["#ft", "#in", "#fr"].forEach((s) => $(s).addEventListener("input", calc));
+  fillLists(true);
 })();
 </script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
